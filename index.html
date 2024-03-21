@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Evaluating mathematical reasoning of foundation models in visual contexts">
+  <meta name="keywords" content="MathVista, Math Vista">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> MATHVERSE: Does Your Multi-modal LLM Truly See the Diagrams in Visual Math Problems?</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script> -->
+  <!-- <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+/Users/panlu/Library/Mobile Documents/com~apple~CloudDocs/ImageMath/visual-mathqa-server/data_final/images
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script> -->
+
+  <link rel="icon" href="./static/images/mathverse.png">
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="./static/css/leaderboard.css">
+
+  <!-- <link href="https://unpkg.com/tabulator-tables@5.5.2/dist/css/tabulator_bulma.min.css" rel="stylesheet">
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script> -->
+  <script type="text/javascript" src="static/js/sort-table.js" defer></script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/explorer-index.js"></script>
+  <script src="./static/js/question_card.js"></script>
+
+  <script src="./static/js/leaderboard_testmini.js"></script>  
+  <script src="./data/results/output_folders.js" defer></script>
+  <script src="./data/results/model_scores.js" defer></script>
+
+  <script src="./visualizer/data/data_public.js" defer></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <!-- <a class="navbar-item" href="https://keunhong.com">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a> -->
+      <!-- @PAN TODO: consider adding links? -->
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link">
+          More Research
+        </a>
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="https://mathvista.github.io/">
+            <b>MATHVISTA</b> <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+          </a>
+          <!-- <a class="navbar-item" href="https://scienceqa.github.io/">
+            <b>ScienceQA</b> <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+          </a>
+          <a class="navbar-item" href="https://github.com/OpenGVLab/LLaMA-Adapter">
+            <b>LLaMA-Adapter (V2)</b> <p style="font-size:18px; display: inline; margin-left: 5px;">🔥</p>
+          </a>
+          <a class="navbar-item" href="https://promptpg.github.io/">
+            PromptPG
+          </a>
+          <a class="navbar-item" href="https://arxiv.org/abs/2307.10635">
+            SciBench
+          </a>
+          <a class="navbar-item" href="https://arxiv.org/abs/2305.12524">
+            TheoremQA
+          </a>
+          <a class="navbar-item" href="https://lila.apps.allenai.org/">
+            Lila
+          </a>
+          <a class="navbar-item" href="https://iconqa.github.io/">
+            IconQA
+          </a>
+          <a class="navbar-item" href="https://lupantech.github.io/inter-gps/">
+            Inter-GPS
+          </a> -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title is-bold">
+            <img src="static/images/mathverse.png" style="width:1em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista" style="vertical-align: middle">MathVerse</span>
+            </h1>
+          <h2 class="subtitle is-3 publication-subtitle">
+            Does Your Multi-modal LLM Truly See the Diagrams in Visual Math Problems?
+            <!-- <br> -->
+            <!-- with GPT-4V, Bard, and Other Large Multimodal Models -->
+          </h2>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://zrrskywalker.github.io/">Renrui Zhang*</a><sup style="color:#6fbf73;">1</sup><sup style="color:#000000;">,</sup><sup style="color:#ed4b82;">2</sup>,</span>
+            <span class="author-block">
+              <a href="https://github.com/CaraJ7">Dongzhi Jiang*</a><sup style="color:#6fbf73;">1</sup>,</span>
+            <span class="author-block">
+              <a href="https://github.com/void721">Yichi Zhang*</a><sup style="color:#ed4b82;">2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://github.com/FelixMessi">Haokun Lin</a><sup style="color:#ed4b82">2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://ziyuguo99.github.io/">Ziyu Guo</a><sup style="color:#ed4b82">2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://prnszz.github.io/">Pengshuo Qiu</a><sup style="color:#ed4b82">2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://scholar.google.com.hk/citations?user=cC8lXi8AAAAJ&hl=en">Aojun Zhou</a><sup style="color:#6fbf73;">1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://lupantech.github.io/">Pan Lu</a><sup style="color:#ffac33">3</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://web.cs.ucla.edu/~kwchang/">Kai-Wei Chang</a><sup style="color:#ffac33">3</sup>
+            </span>
+            <span class="author-block">
+              <a href="https://gaopengcuhk.github.io/">Peng Gao</a><sup style="color:#ed4b82">2</sup>
+            </span>
+            <span class="author-block">
+              <a href="https://www.ee.cuhk.edu.hk/~hsli/">Hongsheng Li</a><sup style="color:#6fbf73">1</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup style="color:#6fbf73;">1</sup>CUHK MMLab,</span><br>
+            <span class="author-block"><sup style="color:#ed4b82">2</sup>Shanghai Artificial Intelligence Laboratory,</span>
+            <span class="author-block"><sup style="color:#ffac33">3</sup>University of California, Los Angeles</span><br>
+            <!-- <span class="paper-block"><b style="color:#f41c1c">ICLR 2024 Oral</b> (85 in 7304, 1.2%)</span> -->
+          </div>
+        
+          <!-- <section> -->
+            <!-- <div class="section" id="org-banners" style="display:fle">
+              <a href="https://www.ucla.edu/" target="_blank" rel="external">
+                  <img class="center-block org-banner" src="static/images/ucla.png" style="height:3em">
+              </a>
+              <a href="https://www.washington.edu/" target="blank" class="ext-link">
+                  <img class="center-block org-banner" src="static/images/uw.png" style="height:3em">
+              </a>
+              <a href="https://www.microsoft.com/en-us/research/" target="_blank" rel="external">
+                  <img class="center-block org-banner" src="static/images/microsoft.png" style="height:3em">
+              </a>
+            </div> -->
+          <!-- </section> -->
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <!-- @PAN TODO: change links -->
+                <a href="https://mathverse-cuhk.github.io"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://mathverse-cuhk.github.io"
+                   class="external-link button is-normal is-rounded is-dark">
+                <!-- <a href="https://lupantech.github.io/papers/arxiv23_mathvista.pdf"
+                   class="external-link button is-normal is-rounded is-dark"> -->
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Video Link. -->
+              <!-- <span class="link-block">
+                <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span> -->
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/ZrrSkywalker/MathVerse"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              <!-- Dataset Link. -->
+              <span class="link-block">
+                <a href="https://huggingface.co/datasets/AI4Math/MathVerse"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <!-- <i class="far fa-images"></i> -->
+                      <p style="font-size:18px">🤗</p>
+                      <!-- 🔗 -->
+                  </span>
+                  <span>Dataset</span>
+                </a>
+              </span> 
+              <!-- Visualization Link. -->
+              <span class="link-block">
+                <a href="https://mathverse-cuhk.github.io/#visualization"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <p style="font-size:18px">🔮</p>
+                  </span>
+                  <span>Visualize</span>
+                </a>
+              </span>
+              <!-- Leaderboard Link. -->
+              <span class="link-block">
+                <a href="https://mathverse-cuhk.github.io/#leaderboard"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <p style="font-size:18px">🏆</p>
+                  </span>
+                  <span>Leaderboard</span>
+                </a>
+              </span>
+              <!-- Twitter Link. -->
+              <!-- <span class="link-block">
+                <a href="https://twitter.com/lupantech/status/1717313355780964608"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"> -->
+                      <!-- <i class="far fa-images"></i> -->
+                      <!-- 💻🔗 -->
+                      <!-- <p style="font-size:18px">🌐</p> -->
+                  <!-- </span>
+                  <span>Twitter</span>
+                </a>
+              </span> -->
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section class="section">
+  <div class="container" style="margin-bottom: 2vh;">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Introduction</h2>
+        <div class="content has-text-justified">
+          <p>
+            The remarkable progress of <b>Multi-modal Large Language Models (MLLMs)</b> has garnered unparalleled attention, due to their superior performance in visual contexts. However, their capabilities in visual math problem-solving remain insufficiently evaluated and understood.<b>We investigate current benchmarks to incorporate excessive visual content within textual questions, which potentially assist MLLMs in deducing answers without truly interpreting the input diagrams</b>.
+          </p>
+          <p>
+            To this end, we introduce <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">MathVerse</span>, an all-around visual math benchmark designed for an equitable and in-depth evaluation of MLLMs. We meticulously collect <b>2,612 high-quality, multi-subject math problems</b> with diagrams from publicly available sources. Each problem is then transformed by human annotators into <b>6 distinct versions</b>, each offering varying degrees of information content in multi-modality, contributing to <b>15K test samples</b> in total.
+            This approach allows <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">MathVerse</span> to comprehensively assess <b>whether and how much MLLMs can truly understand the visual diagrams for mathematical reasoning</b>. In addition, we propose a <b>Chain-of-Thought (CoT) evaluation strategy</b> for a fine-grained assessment of the output answers. Rather than naively judging True or False, we employ GPT-4(V) to adaptively extract crucial reasoning steps, and then score each step with detailed error analysis, which can reveal the intermediate CoT reasoning quality by MLLMs.
+          </p>
+          <p>
+            With <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">MathVerse</span>, <b>we unveil that, most existing MLLMs struggle to understand math diagrams, relying heavily on textual questions</b>. Surprisingly, some of them even achieve 5%+ higher accuracy without the visual input, e.g., Qwen-VL-Max and InternLM-XComposer2.
+            In contrast, GPT-4V and ShareGPT4V demonstrate relatively better comprehension of the visual content for mathematical reasoning. We hope the <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">MathVerse</span> benchmark may provide unique insights to guide the future development of MLLMs.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+</div>
+</section>
+
+<section class="section">
+  <div class="container">
+    
+    <div class="columns is-centered">
+      <div class="column is-full has-text-centered content">
+
+        <h2 class="title is-3" id="leaderboard">Leaderboard</h2>
+        <div class="content">
+          <p class="mt-3">Accuracy scores on the <b>testmini</b> subset of <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">MathVerse</span>.
+          </p>
+
+          <table class="js-sort-table" id="results">
+            <thead>
+              <tr>
+                <th rowspan="2" style="vertical-align: middle;"><strong>#</strong></th>
+                <th rowspan="2" style="vertical-align: middle;"><strong>Model</strong></th>
+                <th rowspan="2" style="vertical-align: middle;"><strong>Method</strong></th>
+                <th rowspan="2" style="vertical-align: middle;"><strong>Source</strong></th>
+                <th rowspan="2" style="vertical-align: middle;"><strong>Date</strong></th>
+                <th colspan="2" style="vertical-align: middle;"><strong><u>ALL</u></strong></th>
+                <th colspan="2" style="vertical-align: middle;"><strong>Text<br>Dominant</strong></th> <!-- Merging two columns for 'OOO' -->
+                <th colspan="2" style="vertical-align: middle;"><strong>Text<br>Lite</strong></th> <!-- Merging two columns for 'PPP' -->
+                <th colspan="2" style="vertical-align: middle;"><strong>Text<br>Only</strong></th>
+                <th colspan="2" style="vertical-align: middle;"><strong>Vision<br>Intensive</strong></th>
+                <th colspan="2" style="vertical-align: middle;"><strong>Vision<br>Dominant</strong></th>
+                <th colspan="2" style="vertical-align: middle;"><strong>Vision<br>Only</strong></th>
+              </tr>
+              <tr>
+                <!-- Sub-headers for the 'TD' column -->
+                <th><strong><u>CoT-E</u></strong></th>
+                <th><strong>w/o</strong></th>
+                <!-- Sub-headers for the 'TL' column -->
+                <th><strong>CoT-E</strong></th>
+                <th><strong>w/o</strong></th>
+                <th><strong>CoT-E</strong></th>
+                <th><strong>w/o</strong></th>
+                <th><strong>CoT-E</strong></th>
+                <th><strong>w/o</strong></th>
+                <th><strong>CoT-E</strong></th>
+                <th><strong>w/o</strong></th>
+                <th><strong>CoT-E</strong></th>
+                <th><strong>w/o</strong></th>
+                <th><strong>CoT-E</strong></th>
+                <th><strong>w/o</strong></th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr>
+                <td>1</td>
+                <td><b class="best-score-text">GPT-4V 🥇</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="best-score-text">54.4</b></td>
+                <td>38.3</td>
+                <td>63.1</td>
+                <td>52.1</td>
+                <td>56.6</td>
+                <td>40.9</td>
+                <td>60.3</td>
+                <td>46.1</td>
+                <td>51.4</td>
+                <td>34.9</td>
+                <td>50.8</td>
+                <td>33.6</td>
+                <td>50.3</td>                                  
+                <td>29.8</td>                                  
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><b class="best-score-text">Qwen-VL-Max 🥈</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="best-score-text">37.2</b></td>
+                <td>24.8</td>
+                <td>42.8</td>
+                <td>30.3</td>
+                <td>37.7</td>
+                <td>24.8</td>
+                <td>47.9</td>
+                <td>32.2</td>
+                <td>33.6</td>
+                <td>20.6</td>
+                <td>35.9</td>
+                <td>23.3</td>
+                <td>35.9</td>                                  
+                <td>25.1</td>                                  
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><b class="best-score-text">Gemini-Pro 🥉</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="best-score-text">35.3</b></td>
+                <td>22.3</td>
+                <td>39.8</td>
+                <td>27.6</td>
+                <td>34.7</td>
+                <td>23.7</td>
+                <td>44.5</td>
+                <td>27.9</td>
+                <td>32.0</td>
+                <td>19.4</td>
+                <td>36.8</td>
+                <td>20.3</td>
+                <td>33.3</td>                                  
+                <td>20.5</td>                                  
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><b class="">InternLM-XComposer2-VL-7B</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://github.com/InternLM/InternLM-XComposer" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2024-01-22</td>
+                <td><b class="">25.9</b></td>
+                <td>16.3</td>
+                <td>36.9</td>
+                <td>20.2</td>
+                <td>28.3</td>
+                <td>14.3</td>
+                <td>42.5</td>
+                <td>24.5</td>
+                <td>20.1</td>
+                <td>14.2</td>
+                <td>24.4</td>
+                <td>17.5</td>
+                <td>19.8</td>                                  
+                <td>15.2</td>                                  
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><b class="">SPHINX-MoE</b></td>
+                <td>MoE 🤖</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-10-03</td>
+                <td><b class="">22.8</b></td>
+                <td>16.8</td>
+                <td>33.3</td>
+                <td>26.2</td>
+                <td>21.9</td>
+                <td>17.4</td>
+                <td>40.7</td>
+                <td>26.7</td>
+                <td>21.1</td>
+                <td>16.7</td>
+                <td>19.6</td>
+                <td>12.5</td>
+                <td>18.3</td>                                  
+                <td>11.1</td>                                  
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><b class="">Qwen-VL-Plus</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="">21.3</b></td>
+                <td>11.8</td>
+                <td>26.0</td>
+                <td>15.7</td>
+                <td>21.2</td>
+                <td>11.1</td>
+                <td>25.2</td>
+                <td>14.5</td>
+                <td>18.5</td>
+                <td>9.0</td>
+                <td>19.1</td>
+                <td>13.0</td>
+                <td>21.8</td>                                  
+                <td>10.0</td>                                  
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><b class="">ShareGPT4V-13B</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="">17.4</b></td>
+                <td>13.1</td>
+                <td>21.8</td>
+                <td>16.2</td>
+                <td>20.6</td>
+                <td>16.2</td>
+                <td>14.6</td>
+                <td>6.6</td>
+                <td>18.6</td>
+                <td>15.5</td>
+                <td>16.2</td>
+                <td>13.8</td>
+                <td>9.7</td>                                  
+                <td>3.7</td>                                  
+              </tr>
+              <tr>
+                <td>8</td>
+                <td><b class="">LLaVA-NeXT-13B</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://github.com/Alpha-VLLM/LLaMA2-Accessory/tree/main/SPHINX" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2024-01-13</td>
+                <td><b class="">17.2</b></td>
+                <td>10.3</td>
+                <td>21.6</td>
+                <td>12.8</td>
+                <td>19.7</td>
+                <td>12.0</td>
+                <td>25.1</td>
+                <td>9.9</td>
+                <td>17.6</td>
+                <td>10.7</td>
+                <td>14.9</td>
+                <td>9.7</td>     
+                <td>12.1</td>                            
+                <td>6.3</td>                            
+              </tr>
+              <tr>
+                <td>9</td>
+                <td><b class="">G-LLaVA-7B</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="">15.7</b></td>
+                <td>16.6</td>
+                <td>22.2</td>
+                <td>20.9</td>
+                <td>20.4</td>
+                <td>20.7</td>
+                <td>21.6</td>
+                <td>21.1</td>
+                <td>16.5</td>
+                <td>17.2</td>
+                <td>12.7</td>
+                <td>14.6</td>
+                <td>6.6</td>                                  
+                <td>9.4</td>                                  
+              </tr>
+              <tr>
+                <td>10</td>
+                <td><b class="">SPHINX-Plus</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="">14.0</b></td>
+                <td>12.2</td>
+                <td>16.3</td>
+                <td>13.9</td>
+                <td>12.8</td>
+                <td>11.6</td>
+                <td>15.8</td>
+                <td>14.9</td>
+                <td>12.9</td>
+                <td>11.6</td>
+                <td>14.7</td>
+                <td>13.5</td>
+                <td>13.2</td>                                  
+                <td>10.4</td>                                  
+              </tr>
+              <tr>
+                <td>11</td>
+                <td><b class="">LLaVA-1.5-13B</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="">12.7</b></td>
+                <td>7.6</td>
+                <td>17.1</td>
+                <td>8.8</td>
+                <td>12.0</td>
+                <td>7.6</td>
+                <td>22.6</td>
+                <td>11.5</td>
+                <td>12.6</td>
+                <td>7.4</td>
+                <td>12.7</td>
+                <td>7.4</td>
+                <td>9.0</td>                                  
+                <td>6.9</td>                                  
+              </tr>
+              <tr>
+                <td>12</td>
+                <td><b class="">MiniGPT-v2-7B</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="">10.9</b></td>
+                <td>11.0</td>
+                <td>13.2</td>
+                <td>12.1</td>
+                <td>12.7</td>
+                <td>12.0</td>
+                <td>15.3</td>
+                <td>11.7</td>
+                <td>11.1</td>
+                <td>13.1</td>
+                <td>11.3</td>
+                <td>10.3</td>
+                <td>6.4</td>                                  
+                <td>7.4</td>                                  
+              </tr>
+              <tr>
+                <td>13</td>
+                <td><b class="">mPLUG-Owl2-7B</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="">10.3</b></td>
+                <td>4.6</td>
+                <td>11.6</td>
+                <td>6.6</td>
+                <td>11.4</td>
+                <td>6.3</td>
+                <td>13.8</td>
+                <td>6.1</td>
+                <td>11.1</td>
+                <td>6.3</td>
+                <td>9.4</td>
+                <td>5.6</td>
+                <td>8.0</td>                                  
+                <td>4.9</td>                                  
+              </tr>
+              <tr>
+                <td>14</td>
+                <td><b class="">ImageBind-LLM</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="">10.0</b></td>
+                <td>9.3</td>
+                <td>13.2</td>
+                <td>11.4</td>
+                <td>11.6</td>
+                <td>11.3</td>
+                <td>12.9</td>
+                <td>11.7</td>
+                <td>9.8</td>
+                <td>8.9</td>
+                <td>11.8</td>
+                <td>11.2</td>
+                <td>3.5</td>                                  
+                <td>3.4</td>                                  
+              </tr>
+              <tr>
+                <td>15</td>
+                <td><b class="">LLaMA-Adapter V2</b></td>
+                <td>MLLM 🖼️</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-12-26</td>
+                <td><b class="">5.8</b></td>
+                <td>5.7</td>
+                <td>7.8</td>
+                <td>6.2</td>
+                <td>6.3</td>
+                <td>5.9</td>
+                <td>3.9</td>
+                <td>2.7</td>
+                <td>6.2</td>
+                <td>6.1</td>
+                <td>4.5</td>
+                <td>4.2</td>
+                <td>4.4</td>                                  
+                <td>6.1</td>                                  
+              </tr>
+
+            <!-- Human & LLM -->
+              <tr>
+                <td>-</td>
+                <td><b class="">ChatGPT</b></td>
+                <td>LLM 📄</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-10-03</td>
+                <td><b class="">-</b></td>
+                <td>-</td>
+                <td>51.3</td>
+                <td>33.3</td>
+                <td>38.5</td>
+                <td>18.9</td>
+                <td>51.3</td>
+                <td>33.3</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>                                  
+                <td>-</td>                                  
+              </tr>
+              <tr>
+                <td>-</td>
+                <td><b class="">GPT-4</b></td>
+                <td>LLM 📄</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-10-03</td>
+                <td><b class="">-</b></td>
+                <td>-</td>
+                <td>63.4</td>
+                <td>46.5</td>
+                <td>40.7</td>
+                <td>20.7</td>
+                <td>63.4</td>
+                <td>46.5</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>                                  
+                <td>-</td>   
+              </tr>
+              <tr>
+                <td>-</td>
+                <td><b>Human Performance*</b></td>
+                <td>-</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-10-03</td>
+                <td><b>-</b></td>
+                <td>64.9</td>
+                <td>-</td>
+                <td>71.2</td>
+                <td>-</td>
+                <td>70.9</td>
+                <td>-</td>
+                <td>41.7</td>
+                <td>-</td>
+                <td>61.4</td>
+                <td>-</td>
+                <td>68.3</td>
+                <td>-</td>             
+                <td>66.7</td>             
+              </tr>
+              <tr>
+                <td>-</td>
+                <td><b>Random Chance</b></td>
+                <td>-</td>
+                <td><a href="https://arxiv.org/abs/2310.02255" class="ext-link" style="font-size: 16px;">Link</a></td>
+                <td>2023-10-03</td>
+                <td><b>-</b></td>
+                <td>12.4</td>
+                <td>-</td>
+                <td>12.4</td>
+                <td>-</td>
+                <td>12.4</td>
+                <td>-</td>
+                <td>12.4</td>
+                <td>-</td>
+                <td>12.4</td>
+                <td>-</td>
+                <td>12.4</td>
+                <td>-</td>             
+                <td>12.4</td>        
+              </tr>
+          </tbody>                                                   
+        </table>
+
+          <b>Human Performance*:</b> Average human performance from annotators that are college students.
+          <br>
+          <b>Method types:</b> <b>MLLM 🖼️:</b> Multi-modal Large Language Model, <b>MoE 🤖:</b> Mixture of Experts, <b>LLM 📄:</b> Large Language Model
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- DATASET SECTION -->
+<section class="hero is-light is-small">
+  <div class="hero-body has-text-centered">
+    <!-- <h1 class="title is-1 mathvista"><img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>MathVista Dataset</h1> -->
+  <h1 class="title is-1 mathvista">
+    <img src="static/images/mathverse.png" style="width:1em;vertical-align: middle" alt="Logo"/>
+    <span class="mathvista" style="vertical-align: middle">MathVerse Dataset</span>
+  </h1>
+  </div>
+</section>
+
+<!-- <section class="section">
+  <div class="container" style="margin-bottom: 2vh;">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Introduction</h2>
+        <div class="content has-text-justified">
+          <p> -->
+            
+<section class="section">
+  <div class="container">
+    <div class="columns is-centered has-text-centered">
+      <!-- <div class="column is-full-width has-text-centered"> -->
+        <div class="column is-four-fifths">
+        <h2 class="title is-3">Overview</h2>
+        <div class="content has-text-justified">
+          <p>
+            <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">MathVerse</span> is a holistic and specialized visual math benchmark crafted to evaluate the multi-modal mathematical reasoning skills of MLLMs. 
+            This benchmark encompasses a meticulously collected dataset of <b>2,612 visual math problems</b>, with <b>1,236 newly acquired</b> from public question repositories and <b>1,376 selected from existing benchmarks</b>, ensuring a diverse range of challenges. To specialize in mathematical reasoning, <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">MathVerse</span> spans <b>three primary areas: plane geometry, solid geometry, and functions</b>. Each problem has been rigorously reviewed by expert annotators and classified into <b>12 detailed categories</b>, emphasizing different fine-grained problem-solving capabilities. Notably, <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">MathVerse</span> distinguishes itself by introducing <b>2 novel strategies</b> for evaluating MLLMs.
+          </p>
+
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/overview_mv/image/fig4.pdf.png" alt="algebraic reasoning" width="80%"/>
+              <p> Examples of six versions of each problem in 
+                <span class="mathvista">MathVerse</span>.
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/overview_mv/image/fig3.pdf.png" alt="arithmetic reasoning" width="100%"/>
+              <p> Three categories of question texts in 
+                <span class="mathvista">MathVerse</span>.
+            </div>
+          </div>
+        </div>
+      </div> 
+
+
+          <p>
+            <!-- All the data examples were divided into two subsets: testmini and test.  -->
+            <!-- @PAN TODO: add download links -->
+            <!-- <ul>
+              <li><b>testmini</b>: 1,000 examples used for model development, validation, or for those with limited computing resources.</li>
+              <li><b>test</b>: 5,141 examples for standard evaluation. Notably,
+                the answer labels for test will NOT be publicly released.</li>
+            </ul> -->
+            You can download the dataset on <a href="https://huggingface.co/datasets/AI4Math/MathVerse" target="_blank">Hugging Face Dataset</a>.
+          </p>
+
+        </div>
+      </div>
+    </div>
+    <div class="columns is-centered">
+      <div class="column" style="margin-right: -20rem;">
+        <div class="content has-text-centered">
+          <img src="static/images/statistics_mv.png" alt="data-overview" style="max-width: 50%;"/>
+          <p> 
+            Key statistics of <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+            <span class="mathvista">MathVerse</span>.<br/>
+          </p> 
+        </div>
+      </div>
+      <div class="column">
+        <div class="content has-text-centered">
+          <img src="static/images/data-composition_mv.png" alt="data-composition" style="max-width: 56%;"/>
+          <p>
+              Subject distribution of <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+              <span class="mathvista">MathVerse</span>.<br/>
+              <b>Solid G</b>: Solid Geometry,
+              <b>Plane G</b>: Plane Geometry,
+              <!-- <br/> -->
+              <!-- <b>MWP</b>: math word problem,
+              <b>TQA</b>: textbook question answering,<br/>
+              <b>VQA</b>: visual question answering. -->
+          </p>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="columns is-centered m-6">
+      <div class="column is-full has-text-centered content">
+        <h2 class="title is-3">Examples</h2>
+        <p>One example for each <b>subfield</b> in <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+          <span class="mathvista">MathVerse</span></p>
+
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/category_mv/image/supp-fig5.pdf.png" alt="" width="95%"/>
+              <p>Plane Geometry</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/category_mv/image/supp-fig6.pdf.png" alt="" width="65%"/>
+              <p>Solid Geometry</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/category_mv/image/supp-fig7.pdf.png" alt="" width="85%"/>
+              <p>Functions</p>
+            </div>
+          </div>
+        </div>
+
+        <br><br>
+        <p>Comparison of <b>six problem versions</b> in <img src="static/images/mathverse.png" style="width:1.0em;vertical-align: middle" alt="Logo"/>
+          <span class="mathvista">MathVerse</span></p>
+
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/six_versions_mv/image/figs_1.pdf.png" alt="" width="60%"/>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/six_versions_mv/image/figs_2.pdf.png" alt="" width="60%"/>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/six_versions_mv/image/figs_3.pdf.png" alt="" width="60%"/>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="columns is-centered m-6">
+      <div class="column is-max-desktop has-text-centered">
+        <h2 class="title is-3" id="visualization">Visualization</h2>
+        <iframe src="visualizer/explore.html" style="width: 100%;min-height: 100vh; border-radius: 20px;"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS SECTION -->
+<section class="hero is-light is-small">
+  <div class="hero-body has-text-centered">
+    <h1 class="title is-1 mathvista">Experiment Results</h1>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+
+    <div class="columns is-centered m-6">
+      <div class="column is-full has-text-centered content">
+        <h2 class="title is-3">Results on Existing Foundation Models</h2>
+        <!-- <p>One example for each reasoning skill required in <span class="mathvista">MathVista</span></p> -->
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/result_analysis/gpt4_error_version.png" alt="grade-lv" width="60%"/>
+              <p>Distribution of GPT-4V's errors in reasoning and answers.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/result_analysis/gpt4_error_type.png" alt="grade-lv" width="80%"/>
+              <p>Distribution of GPT-4V's errors within different types.</p>
+            </div>
+          </div>
+          <!-- <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results-figures/grade-lv.png" alt="grade-lv" width="90%"/>
+              <p>Average accuracy scores across different grade levels for leading foundation models</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results-figures/contexts.png" alt="contexts" width="90%"/>
+              <p>Accuracy scores of leading baselines across various visual contexts</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results-figures/ablation.png" alt="geometric reasoning" width="90%"/>
+              <p>Average accuracy scores of LLM baselines under various visual inputs</p>
+            </div>
+          </div> -->
+        </div>
+      </div>
+    </div>
+
+    <div class="columns is-centered m-6">
+      <div class="column is-full has-text-centered content">
+        <h2 class="title is-3">Visualization Examples</h2>
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua1_1.pdf.png" alt="" width="80%"/>
+              <p>Response Comparison of GPT-4V, LLaVA-NeXT, and SPHINX-MoE. We adopt the Text-lite version of the problem, and highlight the key-step extraction and scoring by the CoT evaluation strategy.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua1_2.pdf.png" alt="" width="80%"/>
+              <p>Response Comparison of GPT-4V, LLaVA-NeXT, and SPHINX-MoE. We adopt the Text-lite version of the problem, and highlight the key-step extraction and scoring by the CoT evaluation strategy.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua1_3.pdf.png" alt="" width="80%"/>
+              <p>Response Comparison of GPT-4V, LLaVA-NeXT, and SPHINX-MoE. We adopt the Text-lite version of the problem, and highlight the key-step extraction and scoring by the CoT evaluation strategy.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua1_4.pdf.png" alt="" width="80%"/>
+              <p>Response Comparison of GPT-4V, LLaVA-NeXT, and SPHINX-MoE. We adopt the Text-lite version of the problem, and highlight the key-step extraction and scoring by the CoT evaluation strategy.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua1_5.pdf.png" alt="" width="80%"/>
+              <p>Response Comparison of GPT-4V, LLaVA-NeXT, and SPHINX-MoE. We adopt the Text-lite version of the problem, and highlight the key-step extraction and scoring by the CoT evaluation strategy.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua1_6.pdf.png" alt="" width="80%"/>
+              <p>Response Comparison of GPT-4V, LLaVA-NeXT, and SPHINX-MoE. We adopt the Text-lite version of the problem, and highlight the key-step extraction and scoring by the CoT evaluation strategy.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua4_1.pdf.png" alt="" width="60%"/>
+              <p>Response of Different Problem Versions by GPT-4V.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua4_2.pdf.png" alt="" width="60%"/>
+              <p>Response of Different Problem Versions by GPT-4V.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua4_3.pdf.png" alt="" width="60%"/>
+              <p>Response of Different Problem Versions by GPT-4V.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua4_4.pdf.png" alt="" width="60%"/>
+              <p>Response of Different Problem Versions by GPT-4V.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua4_5.pdf.png" alt="" width="70%"/>
+              <p>Response of Different Problem Versions by GPT-4V.</p>
+            </div>
+          </div>
+          <div class="box m-5">
+            <div class="content has-text-centered">
+              <img src="static/images/results_mv/image/supp-fig-qua4_6.pdf.png" alt="" width="80%"/>
+              <p>Response of Different Problem Versions by GPT-4V.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- @PAN TODO: bibtex -->
+<!-- <section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3 has-text-centered">BibTeX</h2>
+    <pre><code>@inproceedings{lu2024mathvista,
+  author    = {Lu, Pan and Bansal, Hritik and Xia, Tony and Liu, Jiacheng and Li, Chunyuan and Hajishirzi, Hannaneh and Cheng, Hao and Chang, Kai-Wei and Galley, Michel and Gao, Jianfeng},
+  title     = {MathVista: Evaluating Mathematical Reasoning of Foundation Models in Visual Contexts},
+  booktitle={International Conference on Learning Representations (ICLR)},
+  year      = {2024}
+}</code></pre>
+  </div>
+</section> -->
+
+<section>
+  <div class="section" id="org-banners" style="display:flex">
+    <a href="https://www.cuhk.edu.hk/chinese/index.html" target="_blank" rel="external">
+        <img class="center-block org-banner" src="static/images/cuhk.png">
+    </a>
+  <div class="section" id="org-banners" style="display:flex">
+    <a href="https://www.shlab.org.cn/" target="_blank" rel="external">
+        <img class="center-block org-banner" src="static/images/shlab.png">
+    </a>
+  <div class="section" id="org-banners" style="display:flex">
+    <a href="https://www.ucla.edu/" target="_blank" rel="external">
+        <img class="center-block org-banner" src="static/images/ucla.png">
+    </a>
+    <!-- <a href="https://www.washington.edu/" target="blank" class="ext-link">
+        <img class="center-block org-banner" src="static/images/uw.png">
+    </a>
+    <a href="https://www.microsoft.com/en-us/research/" target="_blank" rel="external">
+        <img class="center-block org-banner" src="static/images/microsoft.png">
+    </a> -->
+  </div>
+</section>
+
+
+<footer class="footer">
+  <!-- <div class="container"> -->
+    <div class="content has-text-centered">
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is adapted from <a href="https://mathvista.github.io/">MathVista</a> and <a href="https://nerfies.github.io/">Nerfies</a>, licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  <!-- </div> -->
+</footer>
+
+</body>
+</html>
